@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segnapunti Volley Scandolara</title>
+</head>
+<body>
+    <h1>Risultati Partita</h1>
+    <h2 id="titolo-live">Caricamento...</h2>
+    <p id="descrizione-live">Sto cercando i dati nel database...</p>
+
+    <!-- Configurazione di Firebase (chiavi del tuo progetto) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+      const firebaseConfig = {
+        apiKey: "AIzaSyDoFlNYKFgdXvbKn7FRIB2bJ5Qcdx2Uv0g",
+        authDomain: "segnapunti-volley.firebaseapp.com",
+        databaseURL: "https://segnapunti-volley-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "segnapunti-volley",
+        storageBucket: "segnapunti-volley.firebasestorage.app",
+        messagingSenderId: "375317088210",
+        appId: "1:375317088210:web:863feb6592325d0bc8ea0b"
+      };
+      const app = initializeApp(firebaseConfig);
+    </script>
+    
+    <!-- Codice per leggere e mostrare i dati -->
+    <script type="module">
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+        const database = getDatabase();
+        const datiPartitaRef = ref(database, 'partita');
+
+        onValue(datiPartitaRef, (snapshot) => {
+            const titoloLive = document.getElementById('titolo-live');
+            const descrizioneLive = document.getElementById('descrizione-live');
+
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                titoloLive.innerText = data.titolo;
+                descrizioneLive.innerText = data.descrizione;
+            } else {
+                titoloLive.innerText = "Dati non trovati";
+                descrizioneLive.innerText = "Nessun dato presente nel database. Vai nel pannello admin per inserirli.";
+            }
+        });
+    </script>
+</body>
+</html>
