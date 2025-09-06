@@ -3,12 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Segnapunti Volley Scandolara</title>
+    <title>Scando Volley - Segnapunti</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+            --primary: #0f3460;
+            --secondary: #533483;
+            --accent: #e94560;
+            --text-light: #dcdcdc;
+            --text-dark: #a0a0a0;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: white;
+            border-bottom-color: var(--accent);
+        }
+        .btn-primary {
+            background-color: var(--secondary);
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #6d44a6;
+        }
+        .btn-accent {
+            background-color: var(--accent);
+            transition: background-color 0.3s ease;
+        }
+        .btn-accent:hover {
+            background-color: #ff5e7a;
+        }
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--primary);
+        }
+        .form-input {
+            background-color: var(--primary);
+            border: 1px solid var(--secondary);
+            color: var(--text-light);
+        }
+        .form-input:focus {
+            outline: none;
+            ring: 2px;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.7);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6d44a6;
+        }
+    </style>
 </head>
-<body>
-    <h1>Risultati Partita</h1>
-    <h2 id="titolo-live">Caricamento...</h2>
-    <p id="descrizione-live">Sto cercando i dati nel database...</p>
+<body class="antialiased">
+
+    <!-- Schermata di Accesso -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+        <div class="card rounded-lg p-8 shadow-2xl text-center w-11/12 max-w-md">
+            <h1 class="text-3xl font-bold mb-2 text-white">Scando Volley</h1>
+            <p class="text-lg mb-6 text-gray-300">Benvenuto!</p>
+            <p class="mb-4">Seleziona il tuo tipo di accesso:</p>
+            <div id="login-options" class="space-y-4">
+                <button onclick="handleLogin('user')" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg text-lg">
+                    Accedi come Utente
+                </button>
+                <button onclick="document.getElementById('password-section').classList.remove('hidden')" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg text-lg">
+                    Accedi come Admin
+                </button>
+            </div>
+            <div id="password-section" class="hidden mt-4">
+                <input type="password" id="password-input" placeholder="Password Amministratore" class="w-full form-input p-3 rounded-lg text-center">
+                <button onclick="handleLogin('admin')" class="w-full btn-accent text-white font-bold py-3 px-4 rounded-lg mt-3 text-lg">
+                    Conferma
+                </button>
+                <p id="password-error" class="text-red-400 mt-2 hidden">Password errata!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenuto Principale dell'App (nascosto inizialmente) -->
+    <div id="app-container" class="hidden">
+        <header class="bg-opacity-80 backdrop-blur-md sticky top-0 z-40 shadow-lg card border-t-0 border-l-0 border-r-0">
+            <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold text-white">Scando Volley</h1>
+                    <button id="save-data-button" class="admin-content hidden btn-accent text-white font-bold py-1 px-3 rounded-lg text-sm">
+                        Salva Dati (Backup)
+                    </button>
+                </div>
+                <div class="hidden md:flex items-center space-x-6 text-gray-300">
+                    <a href="#" class="nav-link active" data-page="classifica">Classifica</a>
+                    <a href="#" class="nav-link" data-page="giocatori">Gestione Giocatori</a>
+                    <a href="#" class="nav-link" data-page="allenamenti">Registro Allenamenti</a>
+                    <a href="#" class="nav-link" data-page="badge">Gestione Badge</a>
+                    <a href="#" class="nav-link" data-page="calendario">Calendario Eventi</a>
+                </div>
+                 <button id="mobile-menu-button" class="md:hidden text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </nav>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden px-4 pb-4 space-y-2 text-center">
+                <a href="#" class="block nav-link py-2" data-page="classifica">Classifica</a>
+                <a href="#" class="block nav-link py-2" data-page="giocatori">Gestione Giocatori</a>
+                <a href="#" class="block nav-link py-2" data-page="allenamenti">Registro Allenamenti</a>
+                <a href="#" class="block nav-link py-2" data-page="badge">Gestione Badge</a>
+                <a href="#" class="block nav-link py-2" data-page="calendario">Calendario Eventi</a>
+            </div>
+        </header>
+
+        <main class="container mx-auto p-4 md:p-6">
+            <!-- Tutte le tue pagine HTML rimangono identiche -->
+            <!-- Pagina Classifica -->
+            <div id="page-classifica" class="page">
+                 <div class="card rounded-lg p-4 mb-6 border-l-4 border-accent">
+                    <h2 class="text-xl font-bold mb-2 text-accent">Regolamento Punti</h2>
+                    <ul class="list-disc list-inside text-gray-300 space-y-1">
+                        <li><strong class="text-white">1 Punto</strong> per ogni set vinto in allenamento.</li>
+                        <li><strong class="text-white">1 Punto</strong> per la presenza a ogni allenamento.</li>
+                        <li><strong class="text-white">1 Punto</strong> extra se lavi i piatti dopo la cena di squadra.</li>
+                        <li><strong class="text-white">Punti Badge</strong> assegnati al raggiungimento di obiettivi speciali.</li>
+                    </ul>
+                </div>
+                <h2 class="text-3xl font-bold mb-4 text-white">Classifica Generale</h2>
+                <div id="leaderboard-container" class="space-y-3">
+                     <div class="text-center py-10">
+                        <p class="text-gray-400">In attesa dei dati dal server...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagina Gestione Giocatori -->
+            <div id="page-giocatori" class="page hidden">
+                <h2 class="text-3xl font-bold mb-4 text-white">Gestione Giocatori</h2>
+                <div id="admin-only-player-form" class="admin-content card rounded-lg p-6 mb-8 hidden">
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Aggiungi/Modifica Giocatore</h3>
+                    <form id="player-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="hidden" id="playerId">
+                        <input required type="text" id="playerName" placeholder="Nome" class="form-input p-2 rounded">
+                        <input required type="text" id="playerSurname" placeholder="Cognome" class="form-input p-2 rounded">
+                        <input type="text" id="playerAlias" placeholder="Alias" class="form-input p-2 rounded">
+                        <input type="url" id="playerPhoto" placeholder="URL Foto (es: https://...)" class="form-input p-2 rounded">
+                        <input type="number" id="playerAge" placeholder="Età" class="form-input p-2 rounded">
+                        <input type="number" id="playerHeight" placeholder="Altezza (cm)" class="form-input p-2 rounded">
+                        <input type="number" id="playerWeight" placeholder="Peso (kg)" class="form-input p-2 rounded">
+                        <input type="text" id="playerRole" placeholder="Ruolo" class="form-input p-2 rounded">
+                        <textarea id="playerDeficit" placeholder="Deficit/Caratteristiche" class="md:col-span-2 form-input p-2 rounded h-20"></textarea>
+                        <textarea id="playerNotes" placeholder="Note Varie" class="md:col-span-2 form-input p-2 rounded h-20"></textarea>
+                        <div class="md:col-span-2 flex justify-end space-x-3">
+                             <button type="button" onclick="resetForm('player-form')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Annulla</button>
+                            <button type="submit" class="btn-primary text-white font-bold py-2 px-6 rounded">Salva Giocatore</button>
+                        </div>
+                    </form>
+                </div>
+                <div id="players-list-container" class="space-y-4">
+                     <!-- Elenco giocatori -->
+                </div>
+            </div>
+
+            <!-- Pagina Registro Allenamenti -->
+            <div id="page-allenamenti" class="page hidden">
+                <h2 class="text-3xl font-bold mb-4 text-white">Registro Allenamenti</h2>
+                <div class="card rounded-lg p-6 mb-6">
+                     <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                           <label for="training-date" class="block text-lg font-semibold mb-2">Seleziona Data Allenamento:</label>
+                           <input type="date" id="training-date" class="form-input p-2 rounded">
+                        </div>
+                        <div class="flex-grow">
+                             <label for="training-notes" class="block text-lg font-semibold mb-2">Note Allenamento:</label>
+                             <textarea id="training-notes" placeholder="Aggiungi note sull'allenamento..." class="w-full form-input p-2 rounded admin-content" readonly></textarea>
+                        </div>
+                     </div>
+                </div>
+                <div id="training-log-container" class="space-y-3">
+                    <!-- Registro per giocatore -->
+                </div>
+            </div>
+
+            <!-- Pagina Gestione Badge -->
+            <div id="page-badge" class="page hidden">
+                <h2 class="text-3xl font-bold mb-4 text-white">Gestione Badge</h2>
+                 <div id="admin-only-badge-form" class="admin-content card rounded-lg p-6 mb-8 hidden">
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Crea Nuovo Badge</h3>
+                    <form id="badge-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                         <input required type="text" id="badgeName" placeholder="Nome Badge" class="form-input p-2 rounded">
+                         <input type="text" id="badgeIcon" placeholder="Icona (es: ⭐ o 🏆)" class="form-input p-2 rounded">
+                         <input required type="number" id="badgePoints" placeholder="Punti Assegnati" class="form-input p-2 rounded">
+                         <textarea id="badgeDescription" placeholder="Descrizione" class="md:col-span-3 form-input p-2 rounded h-20"></textarea>
+                         <div class="md:col-span-3 flex justify-end">
+                            <button type="submit" class="btn-primary text-white font-bold py-2 px-6 rounded">Crea Badge</button>
+                         </div>
+                    </form>
+                 </div>
+                 <div id="admin-only-assign-badge-form" class="admin-content card rounded-lg p-6 mb-8 hidden">
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Assegna Badge a un Giocatore</h3>
+                    <form id="assign-badge-form" class="flex flex-wrap items-end gap-4">
+                        <div class="flex-grow">
+                            <label for="assign-badge-player" class="block mb-1">Giocatore</label>
+                            <select id="assign-badge-player" class="w-full form-input p-2 rounded"></select>
+                        </div>
+                         <div class="flex-grow">
+                            <label for="assign-badge-select" class="block mb-1">Badge</label>
+                            <select id="assign-badge-select" class="w-full form-input p-2 rounded"></select>
+                        </div>
+                        <button type="submit" class="btn-accent text-white font-bold py-2 px-6 rounded">Assegna</button>
+                    </form>
+                 </div>
+                 <div id="badges-list-container">
+                    <!-- Elenco badge -->
+                 </div>
+            </div>
+
+            <!-- Pagina Calendario Eventi -->
+            <div id="page-calendario" class="page hidden">
+                <h2 class="text-3xl font-bold mb-4 text-white">Calendario Eventi</h2>
+                <div id="admin-only-event-form" class="admin-content card rounded-lg p-6 mb-8 hidden">
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Aggiungi Nuovo Evento</h3>
+                    <form id="event-form" class="space-y-4">
+                         <input required type="text" id="eventName" placeholder="Nome Evento (es: Amichevole vs Team X)" class="form-input p-2 rounded w-full">
+                         <input required type="datetime-local" id="eventDate" class="form-input p-2 rounded w-full">
+                         <textarea id="eventDescription" placeholder="Dettagli (luogo, ora ritrovo, etc.)" class="form-input p-2 rounded w-full h-24"></textarea>
+                         <div class="flex justify-end">
+                            <button type="submit" class="btn-primary text-white font-bold py-2 px-6 rounded">Aggiungi Evento</button>
+                         </div>
+                    </form>
+                 </div>
+                 <div id="events-list-container" class="space-y-4">
+                    <!-- Elenco eventi -->
+                 </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modali (invariati) -->
+    <div id="player-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden">
+         <div class="card rounded-lg p-6 shadow-2xl w-11/12 max-w-lg relative text-gray-300 transform transition-all scale-95 opacity-0" id="player-detail-content"></div>
+    </div>
+    <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden">
+         <div class="card rounded-lg p-6 shadow-2xl w-11/12 max-w-sm text-center transform transition-all scale-95 opacity-0" id="confirm-modal-content">
+            <h3 id="confirm-modal-title" class="text-xl font-bold text-white mb-4">Sei sicuro?</h3>
+            <p id="confirm-modal-text" class="text-gray-300 mb-6">Questa azione è irreversibile.</p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirm-modal-cancel" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded">Annulla</button>
+                <button id="confirm-modal-confirm" class="btn-accent text-white font-bold py-2 px-6 rounded">Conferma</button>
+            </div>
+         </div>
+    </div>
+    <div id="toast-notification" class="fixed bottom-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <p id="toast-message">Operazione completata!</p>
+    </div>
+
+
+    <!-- =================================================================== -->
+    <!-- NUOVO MOTORE DATI CON FIREBASE -->
+    <!-- =================================================================== -->
 
     <!-- Configurazione di Firebase (chiavi del tuo progetto) -->
     <script type="module">
@@ -25,26 +297,592 @@
       const app = initializeApp(firebaseConfig);
     </script>
     
-    <!-- Codice per leggere e mostrare i dati -->
     <script type="module">
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
+        // <-- MODIFICA: Prende il controllo del database di Firebase
         const database = getDatabase();
-        const datiPartitaRef = ref(database, 'partita');
+        const dbRef = ref(database);
 
-        onValue(datiPartitaRef, (snapshot) => {
-            const titoloLive = document.getElementById('titolo-live');
-            const descrizioneLive = document.getElementById('descrizione-live');
+        // Stato dell'applicazione
+        let isAdmin = false;
+        
+        // Dichiarazione delle variabili di stato
+        let players = [], badges = [], events = [], trainings = {};
+        
+        // <-- MODIFICA: Funzione per caricare i dati e mettersi in ascolto in tempo reale
+        function listenToFirebase() {
+            onValue(dbRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const appState = snapshot.val();
+                    players = appState.players || [];
+                    badges = appState.badges || [];
+                    events = appState.events || [];
+                    trainings = appState.trainings || {};
+                } else {
+                    // Se il database è vuoto, inizializza con dati vuoti
+                    players = [];
+                    badges = [];
+                    events = [];
+                    trainings = {};
+                }
+                // Una volta ricevuti i dati, aggiorna tutta l'interfaccia
+                renderAll();
+            });
+        }
 
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                titoloLive.innerText = data.titolo;
-                descrizioneLive.innerText = data.descrizione;
-            } else {
-                titoloLive.innerText = "Dati non trovati";
-                descrizioneLive.innerText = "Nessun dato presente nel database. Vai nel pannello admin per inserirli.";
+        // <-- MODIFICA: Funzione per salvare tutti i dati su Firebase
+        function saveDataToFirebase() {
+            if (!isAdmin) return; // Solo gli admin possono salvare
+            const appState = {
+                players,
+                badges,
+                events,
+                trainings
+            };
+            set(dbRef, appState)
+              .then(() => {
+                  showToast('Dati salvati su Firebase!');
+              })
+              .catch((error) => {
+                  console.error("Errore nel salvataggio su Firebase:", error);
+                  showToast('Errore nel salvataggio!', true);
+              });
+        }
+        
+        let selectedTrainingDate = new Date().toISOString().split('T')[0];
+
+        // Elementi DOM (invariati)
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // Funzione per aggiornare tutta la UI
+        function renderAll() {
+            renderLeaderboard();
+            renderPlayersList();
+            renderTrainingLog();
+            renderBadges();
+            renderEvents();
+        }
+        
+        // Tutte le tue funzioni di rendering rimangono IDENTICHE
+        const renderLeaderboard = () => {
+            const container = document.getElementById('leaderboard-container');
+            if (players.length === 0) {
+                container.innerHTML = `<p class="text-gray-400 text-center py-10">Nessun giocatore ancora inserito.</p>`;
+                return;
             }
+
+            const leaderboardData = players.map(player => {
+                let totalPoints = 0;
+                let attendanceCount = 0;
+                let setsWon = 0;
+                let dishPoints = 0;
+                
+                Object.values(trainings).forEach(trainingDay => {
+                    const playerData = trainingDay.players && trainingDay.players[player.id];
+                    if (playerData) {
+                        if (playerData.present) {
+                            attendanceCount++;
+                            totalPoints++;
+                        }
+                        const sets = parseInt(playerData.setsWon, 10) || 0;
+                        setsWon += sets;
+                        totalPoints += sets;
+                        
+                        if (playerData.dishes) {
+                            dishPoints++;
+                            totalPoints++;
+                        }
+                    }
+                });
+
+                const badgePoints = (player.assignedBadges || []).reduce((acc, badgeId) => {
+                    const badge = badges.find(b => b.id === badgeId);
+                    return acc + (badge ? parseInt(badge.points, 10) : 0);
+                }, 0);
+                totalPoints += badgePoints;
+
+                const pointAverage = attendanceCount > 0 ? (setsWon / attendanceCount).toFixed(2) : 0;
+
+                return { ...player, totalPoints, attendanceCount, dishPoints, badgePoints, pointAverage, setsWon };
+            }).sort((a, b) => b.totalPoints - a.totalPoints);
+            
+            container.innerHTML = leaderboardData.map((player, index) => {
+                const rankColor = index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-yellow-700' : 'bg-gray-600';
+                return `
+                <div class="card rounded-lg p-4 flex items-center space-x-4 shadow-md transform hover:scale-105 transition-transform duration-300">
+                    <div class="flex-shrink-0 w-12 h-12 ${rankColor} rounded-full flex items-center justify-center text-xl font-bold text-white">${index + 1}</div>
+                    <img src="${player.photo || 'https://placehold.co/100x100/16213e/dcdcdc?text=' + player.name.charAt(0)}" alt="${player.name}" class="w-16 h-16 rounded-full object-cover border-2 border-secondary">
+                    <div class="flex-grow">
+                        <h3 class="text-xl font-bold text-white">${player.name} ${player.surname} ${player.alias ? `(${player.alias})` : ''}</h3>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-400 mt-1">
+                            <span><strong class="text-gray-200">${player.attendanceCount}</strong> Presenze</span>
+                            <span><strong class="text-gray-200">${player.setsWon}</strong> Set Vinti</span>
+                            <span><strong class="text-gray-200">${player.dishPoints}</strong> Piatti</span>
+                            <span><strong class="text-gray-200">${player.badgePoints}</strong> P.ti Badge</span>
+                            <span><strong class="text-gray-200">${player.pointAverage}</strong> Media Punti</span>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold text-accent">${player.totalPoints}</div>
+                </div>
+                `;
+            }).join('');
+        };
+
+        const renderPlayersList = () => {
+            const container = document.getElementById('players-list-container');
+            container.innerHTML = players.map(player => `
+                <div class="card rounded-lg p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <img src="${player.photo || 'https://placehold.co/100x100/16213e/dcdcdc?text=' + player.name.charAt(0)}" alt="${player.name}" class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <p class="font-bold text-lg text-white">${player.name} ${player.surname}</p>
+                            <p class="text-sm text-gray-400">${player.role || 'Ruolo non specificato'}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                         <button onclick="showPlayerDetail('${player.id}')" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                         </button>
+                        ${isAdmin ? `
+                         <button onclick="editPlayer('${player.id}')" class="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                         </button>
+                         <button onclick="deletePlayer('${player.id}')" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                         </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+            populateAssignBadgeDropdowns();
+        };
+
+        const renderTrainingLog = () => {
+            const container = document.getElementById('training-log-container');
+            const trainingDayData = trainings[selectedTrainingDate] || { players: {} };
+            
+            document.getElementById('training-notes').value = trainingDayData.notes || '';
+
+            if (players.length === 0) {
+                 container.innerHTML = `<p class="text-gray-400 text-center">Aggiungi prima dei giocatori.</p>`;
+                 return;
+            }
+
+            container.innerHTML = players.map(player => {
+                const playerData = trainingDayData.players ? (trainingDayData.players[player.id] || {}) : {};
+                return `
+                <div class="card rounded-lg p-3 flex flex-wrap items-center gap-4">
+                    <div class="flex items-center space-x-3 cursor-pointer flex-grow basis-full sm:basis-1/3" onclick="showPlayerDetail('${player.id}')">
+                         <img src="${player.photo || 'https://placehold.co/100x100/16213e/dcdcdc?text=' + player.name.charAt(0)}" alt="${player.name}" class="w-12 h-12 rounded-full object-cover">
+                         <p class="font-semibold text-white">${player.name} ${player.surname}</p>
+                    </div>
+                    <div class="flex items-center space-x-4 flex-wrap gap-2">
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" data-player-id="${player.id}" data-field="present" class="w-6 h-6 form-input rounded" ${playerData.present ? 'checked' : ''} ${!isAdmin ? 'disabled' : ''}>
+                            <span>Presenza</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="number" min="0" data-player-id="${player.id}" data-field="setsWon" class="w-20 form-input p-1 rounded text-center" value="${playerData.setsWon || 0}" ${!isAdmin ? 'disabled' : ''}>
+                            <span>Set Vinti</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" data-player-id="${player.id}" data-field="dishes" class="w-6 h-6 form-input rounded" ${playerData.dishes ? 'checked' : ''} ${!isAdmin ? 'disabled' : ''}>
+                            <span>Piatti</span>
+                        </label>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        };
+        
+        const renderBadges = () => {
+             const container = document.getElementById('badges-list-container');
+             container.innerHTML = `
+                <h3 class="text-2xl font-semibold mb-4 text-white">Badge Esistenti</h3>
+                ${badges.length === 0 ? '<p class="text-gray-400">Nessun badge creato.</p>' : ''}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${badges.map(badge => `
+                        <div class="card rounded-lg p-4 flex items-start space-x-4">
+                           <div class="text-4xl">${badge.icon || '🏅'}</div>
+                           <div class="flex-grow">
+                               <p class="font-bold text-lg text-white">${badge.name} (+${badge.points} P.ti)</p>
+                               <p class="text-sm text-gray-400">${badge.description}</p>
+                           </div>
+                           ${isAdmin ? `<button onclick="deleteBadge('${badge.id}')" class="text-red-400 hover:text-red-600 text-2xl font-bold">&times;</button>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+             `;
+             populateAssignBadgeDropdowns();
+        };
+
+        const renderEvents = () => {
+            const container = document.getElementById('events-list-container');
+            if (events.length === 0) {
+                 container.innerHTML = `<p class="text-gray-400">Nessun evento in programma.</p>`;
+                 return;
+            }
+            const sortedEvents = [...events].sort((a,b) => new Date(a.date) - new Date(b.date));
+            container.innerHTML = sortedEvents.map(event => `
+                 <div class="card rounded-lg p-4 flex justify-between items-start">
+                    <div>
+                        <p class="font-bold text-lg text-white">${event.name}</p>
+                        <p class="text-sm text-accent">${new Date(event.date).toLocaleString('it-IT', { dateStyle: 'full', timeStyle: 'short' })}</p>
+                        <p class="mt-2 text-gray-300 whitespace-pre-wrap">${event.description}</p>
+                    </div>
+                    ${isAdmin ? `<button onclick="deleteEvent('${event.id}')" class="bg-red-600 hover:bg-red-700 text-white p-2 rounded-full h-10 w-10 flex-shrink-0 ml-4 flex items-center justify-center text-xl font-bold">&times;</button>` : ''}
+                 </div>
+            `).join('');
+        };
+
+        const populateAssignBadgeDropdowns = () => {
+            const playerSelect = document.getElementById('assign-badge-player');
+            const badgeSelect = document.getElementById('assign-badge-select');
+            
+            playerSelect.innerHTML = players.map(p => `<option value="${p.id}">${p.name} ${p.surname}</option>`).join('');
+            badgeSelect.innerHTML = badges.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+        };
+
+        // Funzioni per gestire i dati (CRUD)
+        const handlePlayerForm = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('playerId').value;
+            const playerData = {
+                name: document.getElementById('playerName').value,
+                surname: document.getElementById('playerSurname').value,
+                alias: document.getElementById('playerAlias').value,
+                photo: document.getElementById('playerPhoto').value,
+                age: document.getElementById('playerAge').value,
+                height: document.getElementById('playerHeight').value,
+                weight: document.getElementById('playerWeight').value,
+                role: document.getElementById('playerRole').value,
+                deficit: document.getElementById('playerDeficit').value,
+                notes: document.getElementById('playerNotes').value,
+            };
+
+            if (id) { // Modifica
+                const playerIndex = players.findIndex(p => p.id === id);
+                if (playerIndex > -1) {
+                    playerData.assignedBadges = players[playerIndex].assignedBadges || []; // Mantieni i badge
+                    players[playerIndex] = { ...players[playerIndex], ...playerData };
+                }
+            } else { // Aggiungi
+                playerData.id = 'p' + Date.now();
+                playerData.assignedBadges = [];
+                players.push(playerData);
+            }
+            resetForm('player-form');
+            saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+        };
+
+        window.editPlayer = (id) => {
+            const player = players.find(p => p.id === id);
+            if (player) {
+                document.getElementById('playerId').value = player.id;
+                document.getElementById('playerName').value = player.name;
+                document.getElementById('playerSurname').value = player.surname;
+                document.getElementById('playerAlias').value = player.alias || '';
+                document.getElementById('playerPhoto').value = player.photo || '';
+                document.getElementById('playerAge').value = player.age || '';
+                document.getElementById('playerHeight').value = player.height || '';
+                document.getElementById('playerWeight').value = player.weight || '';
+                document.getElementById('playerRole').value = player.role || '';
+                document.getElementById('playerDeficit').value = player.deficit || '';
+                document.getElementById('playerNotes').value = player.notes || '';
+                window.scrollTo(0,0);
+            }
+        };
+
+        window.deletePlayer = (id) => {
+            showConfirmModal(
+                'Elimina Giocatore', 'Sei sicuro di voler eliminare questo giocatore?',
+                () => {
+                    players = players.filter(p => p.id !== id);
+                    saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+                }
+            );
+        };
+
+        const handleBadgeForm = (e) => {
+            e.preventDefault();
+            const badgeData = {
+                id: 'b' + Date.now(),
+                name: document.getElementById('badgeName').value,
+                icon: document.getElementById('badgeIcon').value,
+                points: document.getElementById('badgePoints').value,
+                description: document.getElementById('badgeDescription').value,
+            };
+            badges.push(badgeData);
+            resetForm('badge-form');
+            saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+        };
+        
+        window.deleteBadge = (id) => {
+            showConfirmModal('Elimina Badge', 'Sei sicuro? Verrà rimosso anche dai giocatori.',
+                () => {
+                    badges = badges.filter(b => b.id !== id);
+                    players.forEach(p => {
+                        if (p.assignedBadges) {
+                            p.assignedBadges = p.assignedBadges.filter(bid => bid !== id);
+                        }
+                    });
+                    saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+                }
+            );
+        };
+
+        const handleAssignBadgeForm = (e) => {
+            e.preventDefault();
+            const playerId = document.getElementById('assign-badge-player').value;
+            const badgeId = document.getElementById('assign-badge-select').value;
+            const player = players.find(p => p.id === playerId);
+
+            if (player && badgeId) {
+                if (!player.assignedBadges) {
+                    player.assignedBadges = [];
+                }
+                if (!player.assignedBadges.includes(badgeId)) {
+                    player.assignedBadges.push(badgeId);
+                    showToast('Badge assegnato con successo!');
+                    saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+                } else {
+                    showToast('Questo giocatore ha già questo badge.', true);
+                }
+            }
+        };
+
+        const handleEventForm = (e) => {
+            e.preventDefault();
+            const eventData = {
+                id: 'e' + Date.now(),
+                name: document.getElementById('eventName').value,
+                date: document.getElementById('eventDate').value,
+                description: document.getElementById('eventDescription').value,
+            };
+            events.push(eventData);
+            resetForm('event-form');
+            saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+        };
+
+        window.deleteEvent = (id) => {
+             showConfirmModal('Elimina Evento', 'Sei sicuro di voler eliminare questo evento?',
+                () => {
+                    events = events.filter(ev => ev.id !== id);
+                    saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+                }
+            );
+        };
+
+        const handleTrainingDataChange = (e) => {
+             const { playerId, field } = e.target.dataset;
+             const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+             
+             if (!trainings[selectedTrainingDate]) {
+                trainings[selectedTrainingDate] = { notes: '', players: {} };
+             }
+             if (!trainings[selectedTrainingDate].players[playerId]) {
+                trainings[selectedTrainingDate].players[playerId] = {};
+             }
+
+             trainings[selectedTrainingDate].players[playerId][field] = value;
+             renderLeaderboard(); // Aggiorna solo la classifica per reattività
+             debounce(saveDataToFirebase, 1000)(); // Salva con un piccolo ritardo
+        };
+        
+        const handleTrainingNotesChange = (e) => {
+             const notes = e.target.value;
+             if (!trainings[selectedTrainingDate]) {
+                trainings[selectedTrainingDate] = { notes: '', players: {} };
+             }
+             trainings[selectedTrainingDate].notes = notes;
+             saveDataToFirebase(); // Salva le note
+        };
+
+        // Gestione UI
+        window.handleLogin = (role) => {
+            if (role === 'user') {
+                isAdmin = false;
+                initApp();
+            } else if (role === 'admin') {
+                const password = document.getElementById('password-input').value;
+                if (password === 'Minnie1970!') {
+                    isAdmin = true;
+                    initApp();
+                } else {
+                    const errorEl = document.getElementById('password-error');
+                    errorEl.classList.remove('hidden');
+                    setTimeout(() => errorEl.classList.add('hidden'), 3000);
+                }
+            }
+        };
+
+        function initApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            if (isAdmin) {
+                document.querySelectorAll('.admin-content').forEach(el => el.classList.remove('hidden'));
+                document.querySelectorAll('.admin-content[readonly]').forEach(el => el.removeAttribute('readonly'));
+            }
+            document.getElementById('training-date').value = selectedTrainingDate;
+            listenToFirebase(); // <-- MODIFICA: Avvia l'ascolto dei dati
+        }
+        
+        function switchPage(pageId) {
+            pages.forEach(page => page.classList.add('hidden'));
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.dataset.page === pageId);
+            });
+            mobileMenu.classList.add('hidden');
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchPage(e.target.dataset.page);
+            });
         });
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Listeners per i form
+        document.getElementById('player-form').addEventListener('submit', handlePlayerForm);
+        document.getElementById('badge-form').addEventListener('submit', handleBadgeForm);
+        document.getElementById('assign-badge-form').addEventListener('submit', handleAssignBadgeForm);
+        document.getElementById('event-form').addEventListener('submit', handleEventForm);
+        
+        // Listener per il pulsante Salva
+        document.getElementById('save-data-button').addEventListener('click', saveDataToFirebase);
+        
+        document.getElementById('training-date').addEventListener('change', (e) => {
+            selectedTrainingDate = e.target.value;
+            renderTrainingLog();
+        });
+        
+        document.getElementById('training-log-container').addEventListener('change', handleTrainingDataChange);
+        document.getElementById('training-notes').addEventListener('input', debounce(handleTrainingNotesChange, 500));
+
+        window.resetForm = (formId) => {
+            const form = document.getElementById(formId);
+            form.reset();
+            if (formId === 'player-form') {
+                 document.getElementById('playerId').value = '';
+            }
+        }
+        
+        // Funzioni per Modali e Notifiche (invariate)
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast-notification');
+            toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 z-50 ${isError ? 'bg-red-500' : 'bg-green-500'}`;
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+        
+        let confirmCallback = null;
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmModalContent = document.getElementById('confirm-modal-content');
+        const confirmModalTitle = document.getElementById('confirm-modal-title');
+        const confirmModalText = document.getElementById('confirm-modal-text');
+
+        function showConfirmModal(title, text, callback) {
+            confirmModalTitle.textContent = title;
+            confirmModalText.textContent = text;
+            confirmCallback = callback;
+            confirmModal.classList.remove('hidden');
+            setTimeout(() => confirmModalContent.classList.add('scale-100', 'opacity-100'), 10);
+
+        }
+
+        document.getElementById('confirm-modal-cancel').addEventListener('click', () => {
+            confirmModalContent.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => confirmModal.classList.add('hidden'), 300);
+            confirmCallback = null;
+        });
+
+        document.getElementById('confirm-modal-confirm').addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            confirmModalContent.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => confirmModal.classList.add('hidden'), 300);
+            confirmCallback = null;
+        });
+        
+        window.showPlayerDetail = (id) => {
+            const player = players.find(p => p.id === id);
+            if(!player) return;
+            
+            const modal = document.getElementById('player-detail-modal');
+            const content = document.getElementById('player-detail-content');
+
+            const playerBadges = (player.assignedBadges || []).map(badgeId => {
+                 const badge = badges.find(b => b.id === badgeId);
+                 return badge ? `<span class="bg-accent text-white text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">${badge.icon || '🏅'} ${badge.name}</span>` : '';
+            }).join('');
+
+            content.innerHTML = `
+                <button onclick="closePlayerDetail()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl">&times;</button>
+                <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                    <img src="${player.photo || 'https://placehold.co/150x150/16213e/dcdcdc?text=' + player.name.charAt(0)}" alt="${player.name}" class="w-32 h-32 rounded-full object-cover border-4 border-secondary flex-shrink-0">
+                    <div class="text-center sm:text-left">
+                        <h2 class="text-3xl font-bold text-white">${player.name} ${player.surname}</h2>
+                        <p class="text-lg text-accent">${player.alias ? `"${player.alias}"` : ''}</p>
+                        <p class="text-md mt-1">${player.role || 'Nessun ruolo'}</p>
+                    </div>
+                </div>
+                <div class="mt-6 border-t border-primary pt-4 space-y-3">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div><strong>Età:</strong> ${player.age || 'N/D'}</div>
+                        <div><strong>Altezza:</strong> ${player.height ? player.height + ' cm' : 'N/D'}</div>
+                        <div><strong>Peso:</strong> ${player.weight ? player.weight + ' kg' : 'N/D'}</div>
+                    </div>
+                    <div>
+                        <p><strong>Deficit/Caratteristiche:</strong></p>
+                        <p class="p-2 bg-primary rounded mt-1">${player.deficit || 'Nessuna'}</p>
+                    </div>
+                     <div>
+                        <p><strong>Note:</strong></p>
+                        <p class="p-2 bg-primary rounded mt-1">${player.notes || 'Nessuna'}</p>
+                    </div>
+                     <div>
+                        <p><strong>Badge Ottenuti:</strong></p>
+                        <div class="p-2 flex flex-wrap gap-2 mt-1">${playerBadges || 'Nessun badge'}</div>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+            setTimeout(() => content.classList.add('scale-100', 'opacity-100'), 10);
+        }
+
+        window.closePlayerDetail = () => {
+            const modal = document.getElementById('player-detail-modal');
+            const content = document.getElementById('player-detail-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function debounce(func, timeout = 300){
+          let timer;
+          return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => { func.apply(this, args); }, timeout);
+          };
+        }
     </script>
 </body>
 </html>
+
