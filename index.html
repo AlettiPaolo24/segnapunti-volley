@@ -49,7 +49,7 @@
             background-color: var(--bg-card);
             border: 1px solid var(--primary);
         }
-        .form-input {
+        .form-input, .form-file-button::file-selector-button {
             background-color: var(--primary);
             border: 1px solid var(--secondary);
             color: var(--text-light);
@@ -60,6 +60,46 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 2px var(--accent);
         }
+        .form-file-button::file-selector-button {
+            padding: 0.5rem 1rem;
+            margin-right: 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .form-file-button::file-selector-button:hover {
+            background-color: var(--secondary);
+        }
+        /* Stile per i checkbox */
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            background-color: var(--primary);
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--secondary);
+            transition: all 0.2s;
+        }
+        input[type="checkbox"]:after {
+            font-family: "Poppins";
+            content: '✔';
+            font-size: 16px;
+            color: white;
+            display: none;
+        }
+        input[type="checkbox"]:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+        input[type="checkbox"]:checked:after {
+            display: block;
+        }
+
         .modal-backdrop {
             background-color: rgba(0,0,0,0.7);
         }
@@ -111,15 +151,16 @@
                 <div class="flex items-center space-x-4">
                     <h1 class="text-2xl font-bold text-white">Scando Volley</h1>
                     <button id="save-data-button" class="admin-content hidden btn-accent text-white font-bold py-1 px-3 rounded-lg text-sm">
-                        Salva Dati (Backup)
+                        Salva Dati
                     </button>
                 </div>
                 <div class="hidden md:flex items-center space-x-6 text-gray-300">
                     <a href="#" class="nav-link active" data-page="classifica">Classifica</a>
-                    <a href="#" class="nav-link" data-page="giocatori">Gestione Giocatori</a>
+                    <a href="#" class="nav-link" data-page="giocatori">Giocatori</a>
                     <a href="#" class="nav-link" data-page="allenamenti">Registro Allenamenti</a>
-                    <a href="#" class="nav-link" data-page="badge">Gestione Badge</a>
-                    <a href="#" class="nav-link" data-page="calendario">Calendario Eventi</a>
+                    <a href="#" class="nav-link" data-page="badge">Badge</a>
+                    <a href="#" class="nav-link" data-page="calendario">Eventi</a>
+                    <a href="#" class="nav-link admin-content hidden" data-page="admin">Admin</a>
                 </div>
                  <button id="mobile-menu-button" class="md:hidden text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
@@ -128,15 +169,15 @@
             <!-- Mobile Menu -->
             <div id="mobile-menu" class="hidden md:hidden px-4 pb-4 space-y-2 text-center">
                 <a href="#" class="block nav-link py-2" data-page="classifica">Classifica</a>
-                <a href="#" class="block nav-link py-2" data-page="giocatori">Gestione Giocatori</a>
+                <a href="#" class="block nav-link py-2" data-page="giocatori">Giocatori</a>
                 <a href="#" class="block nav-link py-2" data-page="allenamenti">Registro Allenamenti</a>
-                <a href="#" class="block nav-link py-2" data-page="badge">Gestione Badge</a>
-                <a href="#" class="block nav-link py-2" data-page="calendario">Calendario Eventi</a>
+                <a href="#" class="block nav-link py-2" data-page="badge">Badge</a>
+                <a href="#" class="block nav-link py-2" data-page="calendario">Eventi</a>
+                <a href="#" class="block nav-link py-2 admin-content hidden" data-page="admin">Admin</a>
             </div>
         </header>
 
         <main class="container mx-auto p-4 md:p-6">
-            <!-- Tutte le tue pagine HTML rimangono identiche -->
             <!-- Pagina Classifica -->
             <div id="page-classifica" class="page">
                  <div class="card rounded-lg p-4 mb-6 border-l-4 border-accent">
@@ -149,24 +190,30 @@
                     </ul>
                 </div>
                 <h2 class="text-3xl font-bold mb-4 text-white">Classifica Generale</h2>
-                <div id="leaderboard-container" class="space-y-3">
+                <div id="leaderboard-container" class="space-y-2">
+                    <!-- La classifica verrà generata qui da JavaScript -->
                      <div class="text-center py-10">
-                        <p class="text-gray-400">In attesa dei dati dal server...</p>
+                        <p class="text-gray-400">Nessun dato da visualizzare. Aggiungi giocatori e registra un allenamento.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Pagina Gestione Giocatori -->
+            <!-- Pagina Giocatori -->
             <div id="page-giocatori" class="page hidden">
-                <h2 class="text-3xl font-bold mb-4 text-white">Gestione Giocatori</h2>
+                <h2 class="text-3xl font-bold mb-4 text-white">Giocatori</h2>
+                
                 <div id="admin-only-player-form" class="admin-content card rounded-lg p-6 mb-8 hidden">
                     <h3 class="text-2xl font-semibold mb-4 text-white">Aggiungi/Modifica Giocatore</h3>
                     <form id="player-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input type="hidden" id="playerId">
+                        <input type="hidden" id="playerPhotoData">
                         <input required type="text" id="playerName" placeholder="Nome" class="form-input p-2 rounded">
                         <input required type="text" id="playerSurname" placeholder="Cognome" class="form-input p-2 rounded">
                         <input type="text" id="playerAlias" placeholder="Alias" class="form-input p-2 rounded">
-                        <input type="url" id="playerPhoto" placeholder="URL Foto (es: https://...)" class="form-input p-2 rounded">
+                        <div class="flex items-center space-x-4">
+                            <img id="playerPhotoPreview" src="https://placehold.co/100x100/16213e/dcdcdc?text=Foto" class="w-16 h-16 rounded-full object-cover bg-primary">
+                            <input type="file" id="playerPhoto" accept="image/*" class="form-file-button w-full">
+                        </div>
                         <input type="number" id="playerAge" placeholder="Età" class="form-input p-2 rounded">
                         <input type="number" id="playerHeight" placeholder="Altezza (cm)" class="form-input p-2 rounded">
                         <input type="number" id="playerWeight" placeholder="Peso (kg)" class="form-input p-2 rounded">
@@ -204,9 +251,9 @@
                 </div>
             </div>
 
-            <!-- Pagina Gestione Badge -->
+            <!-- Pagina Badge -->
             <div id="page-badge" class="page hidden">
-                <h2 class="text-3xl font-bold mb-4 text-white">Gestione Badge</h2>
+                <h2 class="text-3xl font-bold mb-4 text-white">Badge</h2>
                  <div id="admin-only-badge-form" class="admin-content card rounded-lg p-6 mb-8 hidden">
                     <h3 class="text-2xl font-semibold mb-4 text-white">Crea Nuovo Badge</h3>
                     <form id="badge-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -238,9 +285,9 @@
                  </div>
             </div>
 
-            <!-- Pagina Calendario Eventi -->
+            <!-- Pagina Eventi -->
             <div id="page-calendario" class="page hidden">
-                <h2 class="text-3xl font-bold mb-4 text-white">Calendario Eventi</h2>
+                <h2 class="text-3xl font-bold mb-4 text-white">Eventi</h2>
                 <div id="admin-only-event-form" class="admin-content card rounded-lg p-6 mb-8 hidden">
                     <h3 class="text-2xl font-semibold mb-4 text-white">Aggiungi Nuovo Evento</h3>
                     <form id="event-form" class="space-y-4">
@@ -256,13 +303,39 @@
                     <!-- Elenco eventi -->
                  </div>
             </div>
+            
+            <!-- Pagina Admin -->
+            <div id="page-admin" class="page hidden">
+                <h2 class="text-3xl font-bold mb-4 text-white">Pannello Admin</h2>
+                <!-- Sezione Backup e Ripristino -->
+                <div class="card rounded-lg p-6 mb-8">
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Backup e Ripristino Dati</h3>
+                    <p class="text-gray-400 mb-4">Salva tutti i dati dell'app in un file per sicurezza o per trasferirli. Ricarica un file di backup per ripristinare uno stato precedente.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <button id="backup-data-button" class="btn-primary text-white font-bold py-2 px-6 rounded">
+                            Backup Dati
+                        </button>
+                        <div>
+                            <label for="restore-data-input" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded cursor-pointer">
+                                Ripristina Dati
+                            </label>
+                            <input type="file" id="restore-data-input" accept=".json" class="hidden">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <!-- Modali (invariati) -->
+    <!-- Modal Dettaglio Giocatore -->
     <div id="player-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden">
-         <div class="card rounded-lg p-6 shadow-2xl w-11/12 max-w-lg relative text-gray-300 transform transition-all scale-95 opacity-0" id="player-detail-content"></div>
+         <div class="card rounded-lg p-6 shadow-2xl w-11/12 max-w-lg relative text-gray-300 transform transition-all scale-95 opacity-0" id="player-detail-content">
+            <!-- Contenuto iniettato da JS -->
+         </div>
     </div>
+
+    <!-- Generic Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop hidden">
          <div class="card rounded-lg p-6 shadow-2xl w-11/12 max-w-sm text-center transform transition-all scale-95 opacity-0" id="confirm-modal-content">
             <h3 id="confirm-modal-title" class="text-xl font-bold text-white mb-4">Sei sicuro?</h3>
@@ -273,86 +346,65 @@
             </div>
          </div>
     </div>
+
+    <!-- Toast Notification -->
     <div id="toast-notification" class="fixed bottom-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
         <p id="toast-message">Operazione completata!</p>
     </div>
 
 
-    <!-- =================================================================== -->
-    <!-- NUOVO MOTORE DATI CON FIREBASE -->
-    <!-- =================================================================== -->
-
-    <!-- Configurazione di Firebase (chiavi del tuo progetto) -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-      const firebaseConfig = {
-        apiKey: "AIzaSyDoFlNYKFgdXvbKn7FRIB2bJ5Qcdx2Uv0g",
-        authDomain: "segnapunti-volley.firebaseapp.com",
-        databaseURL: "https://segnapunti-volley-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "segnapunti-volley",
-        storageBucket: "segnapunti-volley.firebasestorage.app",
-        messagingSenderId: "375317088210",
-        appId: "1:375317088210:web:863feb6592325d0bc8ea0b"
-      };
-      const app = initializeApp(firebaseConfig);
-    </script>
-    
-    <script type="module">
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
-
-        // <-- MODIFICA: Prende il controllo del database di Firebase
-        const database = getDatabase();
-        const dbRef = ref(database);
-
+    <script>
         // Stato dell'applicazione
         let isAdmin = false;
         
         // Dichiarazione delle variabili di stato
-        let players = [], badges = [], events = [], trainings = {};
+        let players, badges, events, trainings;
         
-        // <-- MODIFICA: Funzione per caricare i dati e mettersi in ascolto in tempo reale
-        function listenToFirebase() {
-            onValue(dbRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const appState = snapshot.val();
-                    players = appState.players || [];
-                    badges = appState.badges || [];
-                    events = appState.events || [];
-                    trainings = appState.trainings || {};
-                } else {
-                    // Se il database è vuoto, inizializza con dati vuoti
-                    players = [];
-                    badges = [];
-                    events = [];
-                    trainings = {};
-                }
-                // Una volta ricevuti i dati, aggiorna tutta l'interfaccia
-                renderAll();
-            });
+        // Funzione per caricare i dati
+        function loadData() {
+            const savedData = localStorage.getItem('scandoVolleyData');
+            if (savedData) {
+                const appState = JSON.parse(savedData);
+                players = appState.players || [];
+                badges = appState.badges || [];
+                events = appState.events || [];
+                trainings = appState.trainings || {};
+            } else {
+                // Dati di esempio se non c'è nulla di salvato
+                players = [
+                    { id: 'p1', name: 'Mario', surname: 'Rossi', alias: 'SuperMario', photo: null, age: 25, height: 185, weight: 80, role: 'Schiacciatore', deficit: 'Ricezione', notes: 'Grande saltatore', assignedBadges: ['b1'] },
+                    { id: 'p2', name: 'Luigi', surname: 'Verdi', alias: 'Gigi', photo: null, age: 23, height: 192, role: 'Centrale', deficit: '', notes: 'Muro invalicabile', assignedBadges: [] }
+                ];
+                badges = [
+                    { id: 'b1', name: 'Stakanovista', icon: '🏆', points: '10', description: 'Partecipa a 10 allenamenti di fila' }
+                ];
+                events = [
+                    { id: 'e1', name: 'Amichevole vs S.S. Volley', date: '2025-09-15T21:00', description: 'Presso la palestra comunale. Ritrovo ore 20:00.' }
+                ];
+                trainings = {
+                    '2025-09-01': { 
+                        notes: 'Allenamento intenso sulla difesa', 
+                        players: {
+                            'p1': { present: true, setsWon: '3', dishes: false },
+                            'p2': { present: true, setsWon: '2', dishes: true }
+                        }
+                    }
+                };
+            }
         }
 
-        // <-- MODIFICA: Funzione per salvare tutti i dati su Firebase
-        function saveDataToFirebase() {
-            if (!isAdmin) return; // Solo gli admin possono salvare
-            const appState = {
-                players,
-                badges,
-                events,
-                trainings
-            };
-            set(dbRef, appState)
-              .then(() => {
-                  showToast('Dati salvati su Firebase!');
-              })
-              .catch((error) => {
-                  console.error("Errore nel salvataggio su Firebase:", error);
-                  showToast('Errore nel salvataggio!', true);
-              });
+        // Funzione per salvare i dati
+        function saveData() {
+            const appState = { players, badges, events, trainings };
+            localStorage.setItem('scandoVolleyData', JSON.stringify(appState));
+            showToast('Dati salvati con successo!');
         }
+
+        loadData(); // Carica i dati all'avvio
         
         let selectedTrainingDate = new Date().toISOString().split('T')[0];
 
-        // Elementi DOM (invariati)
+        // Elementi DOM
         const navLinks = document.querySelectorAll('.nav-link');
         const pages = document.querySelectorAll('.page');
         const mobileMenuButton = document.getElementById('mobile-menu-button');
@@ -367,11 +419,11 @@
             renderEvents();
         }
         
-        // Tutte le tue funzioni di rendering rimangono IDENTICHE
+        // Funzioni di rendering
         const renderLeaderboard = () => {
             const container = document.getElementById('leaderboard-container');
             if (players.length === 0) {
-                container.innerHTML = `<p class="text-gray-400 text-center py-10">Nessun giocatore ancora inserito.</p>`;
+                container.innerHTML = `<p class="text-gray-400 text-center">Nessun giocatore ancora inserito.</p>`;
                 return;
             }
 
@@ -413,20 +465,22 @@
             container.innerHTML = leaderboardData.map((player, index) => {
                 const rankColor = index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-yellow-700' : 'bg-gray-600';
                 return `
-                <div class="card rounded-lg p-4 flex items-center space-x-4 shadow-md transform hover:scale-105 transition-transform duration-300">
-                    <div class="flex-shrink-0 w-12 h-12 ${rankColor} rounded-full flex items-center justify-center text-xl font-bold text-white">${index + 1}</div>
-                    <img src="${player.photo || 'https://placehold.co/100x100/16213e/dcdcdc?text=' + player.name.charAt(0)}" alt="${player.name}" class="w-16 h-16 rounded-full object-cover border-2 border-secondary">
+                <div class="card rounded-lg p-3 flex items-center space-x-3 shadow-md">
+                    <div class="flex-shrink-0 w-10 h-10 ${rankColor} rounded-full flex items-center justify-center text-lg font-bold text-white">${index + 1}</div>
+                    <img src="${player.photo || 'https://placehold.co/100x100/16213e/dcdcdc?text=' + player.name.charAt(0)}" alt="${player.name}" class="w-14 h-14 rounded-full object-cover border-2 border-secondary">
                     <div class="flex-grow">
-                        <h3 class="text-xl font-bold text-white">${player.name} ${player.surname} ${player.alias ? `(${player.alias})` : ''}</h3>
-                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-400 mt-1">
-                            <span><strong class="text-gray-200">${player.attendanceCount}</strong> Presenze</span>
-                            <span><strong class="text-gray-200">${player.setsWon}</strong> Set Vinti</span>
+                        <h3 class="text-lg font-bold text-white cursor-pointer hover:underline" onclick="showPlayerDetail('${player.id}')">
+                            ${player.alias || player.name}
+                        </h3>
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400 mt-1">
+                            <span><strong class="text-gray-200">${player.attendanceCount}</strong> Pres.</span>
+                            <span><strong class="text-gray-200">${player.setsWon}</strong> Set</span>
                             <span><strong class="text-gray-200">${player.dishPoints}</strong> Piatti</span>
-                            <span><strong class="text-gray-200">${player.badgePoints}</strong> P.ti Badge</span>
-                            <span><strong class="text-gray-200">${player.pointAverage}</strong> Media Punti</span>
+                            <span><strong class="text-gray-200">${player.badgePoints}</strong> Badge</span>
+                            <span><strong class="text-gray-200">${player.pointAverage}</strong> Media</span>
                         </div>
                     </div>
-                    <div class="text-3xl font-bold text-accent">${player.totalPoints}</div>
+                    <div class="text-2xl font-bold text-accent">${player.totalPoints}</div>
                 </div>
                 `;
             }).join('');
@@ -467,11 +521,6 @@
             
             document.getElementById('training-notes').value = trainingDayData.notes || '';
 
-            if (players.length === 0) {
-                 container.innerHTML = `<p class="text-gray-400 text-center">Aggiungi prima dei giocatori.</p>`;
-                 return;
-            }
-
             container.innerHTML = players.map(player => {
                 const playerData = trainingDayData.players ? (trainingDayData.players[player.id] || {}) : {};
                 return `
@@ -482,7 +531,7 @@
                     </div>
                     <div class="flex items-center space-x-4 flex-wrap gap-2">
                         <label class="flex items-center space-x-2">
-                            <input type="checkbox" data-player-id="${player.id}" data-field="present" class="w-6 h-6 form-input rounded" ${playerData.present ? 'checked' : ''} ${!isAdmin ? 'disabled' : ''}>
+                            <input type="checkbox" data-player-id="${player.id}" data-field="present" ${playerData.present ? 'checked' : ''} ${!isAdmin ? 'disabled' : ''}>
                             <span>Presenza</span>
                         </label>
                         <label class="flex items-center space-x-2">
@@ -490,7 +539,7 @@
                             <span>Set Vinti</span>
                         </label>
                         <label class="flex items-center space-x-2">
-                            <input type="checkbox" data-player-id="${player.id}" data-field="dishes" class="w-6 h-6 form-input rounded" ${playerData.dishes ? 'checked' : ''} ${!isAdmin ? 'disabled' : ''}>
+                            <input type="checkbox" data-player-id="${player.id}" data-field="dishes" ${playerData.dishes ? 'checked' : ''} ${!isAdmin ? 'disabled' : ''}>
                             <span>Piatti</span>
                         </label>
                     </div>
@@ -503,7 +552,6 @@
              const container = document.getElementById('badges-list-container');
              container.innerHTML = `
                 <h3 class="text-2xl font-semibold mb-4 text-white">Badge Esistenti</h3>
-                ${badges.length === 0 ? '<p class="text-gray-400">Nessun badge creato.</p>' : ''}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     ${badges.map(badge => `
                         <div class="card rounded-lg p-4 flex items-start space-x-4">
@@ -522,10 +570,6 @@
 
         const renderEvents = () => {
             const container = document.getElementById('events-list-container');
-            if (events.length === 0) {
-                 container.innerHTML = `<p class="text-gray-400">Nessun evento in programma.</p>`;
-                 return;
-            }
             const sortedEvents = [...events].sort((a,b) => new Date(a.date) - new Date(b.date));
             container.innerHTML = sortedEvents.map(event => `
                  <div class="card rounded-lg p-4 flex justify-between items-start">
@@ -555,44 +599,46 @@
                 name: document.getElementById('playerName').value,
                 surname: document.getElementById('playerSurname').value,
                 alias: document.getElementById('playerAlias').value,
-                photo: document.getElementById('playerPhoto').value,
+                photo: document.getElementById('playerPhotoData').value, // Usa il dato base64
                 age: document.getElementById('playerAge').value,
                 height: document.getElementById('playerHeight').value,
                 weight: document.getElementById('playerWeight').value,
                 role: document.getElementById('playerRole').value,
                 deficit: document.getElementById('playerDeficit').value,
                 notes: document.getElementById('playerNotes').value,
+                assignedBadges: []
             };
 
             if (id) { // Modifica
                 const playerIndex = players.findIndex(p => p.id === id);
                 if (playerIndex > -1) {
-                    playerData.assignedBadges = players[playerIndex].assignedBadges || []; // Mantieni i badge
+                    playerData.assignedBadges = players[playerIndex].assignedBadges; // Mantieni i badge esistenti
                     players[playerIndex] = { ...players[playerIndex], ...playerData };
                 }
             } else { // Aggiungi
                 playerData.id = 'p' + Date.now();
-                playerData.assignedBadges = [];
                 players.push(playerData);
             }
             resetForm('player-form');
-            saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+            renderAll();
         };
 
         window.editPlayer = (id) => {
             const player = players.find(p => p.id === id);
             if (player) {
+                switchPage('giocatori');
                 document.getElementById('playerId').value = player.id;
                 document.getElementById('playerName').value = player.name;
                 document.getElementById('playerSurname').value = player.surname;
-                document.getElementById('playerAlias').value = player.alias || '';
-                document.getElementById('playerPhoto').value = player.photo || '';
-                document.getElementById('playerAge').value = player.age || '';
-                document.getElementById('playerHeight').value = player.height || '';
-                document.getElementById('playerWeight').value = player.weight || '';
-                document.getElementById('playerRole').value = player.role || '';
-                document.getElementById('playerDeficit').value = player.deficit || '';
-                document.getElementById('playerNotes').value = player.notes || '';
+                document.getElementById('playerAlias').value = player.alias;
+                document.getElementById('playerPhotoData').value = player.photo;
+                document.getElementById('playerPhotoPreview').src = player.photo || 'https://placehold.co/100x100/16213e/dcdcdc?text=Foto';
+                document.getElementById('playerAge').value = player.age;
+                document.getElementById('playerHeight').value = player.height;
+                document.getElementById('playerWeight').value = player.weight;
+                document.getElementById('playerRole').value = player.role;
+                document.getElementById('playerDeficit').value = player.deficit;
+                document.getElementById('playerNotes').value = player.notes;
                 window.scrollTo(0,0);
             }
         };
@@ -602,7 +648,7 @@
                 'Elimina Giocatore', 'Sei sicuro di voler eliminare questo giocatore?',
                 () => {
                     players = players.filter(p => p.id !== id);
-                    saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+                    renderAll();
                 }
             );
         };
@@ -618,7 +664,7 @@
             };
             badges.push(badgeData);
             resetForm('badge-form');
-            saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+            renderAll();
         };
         
         window.deleteBadge = (id) => {
@@ -630,7 +676,7 @@
                             p.assignedBadges = p.assignedBadges.filter(bid => bid !== id);
                         }
                     });
-                    saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+                    renderAll();
                 }
             );
         };
@@ -648,9 +694,9 @@
                 if (!player.assignedBadges.includes(badgeId)) {
                     player.assignedBadges.push(badgeId);
                     showToast('Badge assegnato con successo!');
-                    saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+                    renderAll();
                 } else {
-                    showToast('Questo giocatore ha già questo badge.', true);
+                    showToast('Questo giocatore ha già questo badge.');
                 }
             }
         };
@@ -665,14 +711,14 @@
             };
             events.push(eventData);
             resetForm('event-form');
-            saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+            renderAll();
         };
 
         window.deleteEvent = (id) => {
              showConfirmModal('Elimina Evento', 'Sei sicuro di voler eliminare questo evento?',
                 () => {
                     events = events.filter(ev => ev.id !== id);
-                    saveDataToFirebase(); // <-- MODIFICA: Salva automaticamente
+                    renderAll();
                 }
             );
         };
@@ -689,8 +735,7 @@
              }
 
              trainings[selectedTrainingDate].players[playerId][field] = value;
-             renderLeaderboard(); // Aggiorna solo la classifica per reattività
-             debounce(saveDataToFirebase, 1000)(); // Salva con un piccolo ritardo
+             renderLeaderboard();
         };
         
         const handleTrainingNotesChange = (e) => {
@@ -699,7 +744,6 @@
                 trainings[selectedTrainingDate] = { notes: '', players: {} };
              }
              trainings[selectedTrainingDate].notes = notes;
-             saveDataToFirebase(); // Salva le note
         };
 
         // Gestione UI
@@ -728,19 +772,79 @@
                 document.querySelectorAll('.admin-content[readonly]').forEach(el => el.removeAttribute('readonly'));
             }
             document.getElementById('training-date').value = selectedTrainingDate;
-            listenToFirebase(); // <-- MODIFICA: Avvia l'ascolto dei dati
+            renderAll();
         }
         
         function switchPage(pageId) {
             pages.forEach(page => page.classList.add('hidden'));
             document.getElementById(`page-${pageId}`).classList.remove('hidden');
-            navLinks.forEach(link => {
-                link.classList.toggle('active', link.dataset.page === pageId);
+            
+            // Update active state for all nav links, including mobile
+            document.querySelectorAll('.nav-link').forEach(link => {
+                 link.classList.toggle('active', link.dataset.page === pageId);
             });
             mobileMenu.classList.add('hidden');
         }
+        
+        // Backup e Ripristino
+        function handleBackup() {
+            const appState = { players, badges, events, trainings };
+            const dataStr = JSON.stringify(appState, null, 2); // Il 2 formatta il JSON per essere leggibile
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            const date = new Date().toISOString().split('T')[0];
+            link.href = url;
+            link.download = `scando_volley_backup_${date}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Backup scaricato con successo!');
+        }
 
-        navLinks.forEach(link => {
+        function handleRestore(event) {
+            const file = event.target.files[0];
+            if (!file || file.type !== 'application/json') {
+                showToast('Seleziona un file .json valido.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const restoredData = JSON.parse(e.target.result);
+                    // Validazione semplice
+                    if ('players' in restoredData && 'badges' in restoredData) {
+                        showConfirmModal(
+                            'Ripristina Dati',
+                            'Sei sicuro di voler sovrascrivere tutti i dati attuali con quelli del file di backup?',
+                            () => {
+                                players = restoredData.players || [];
+                                badges = restoredData.badges || [];
+                                events = restoredData.events || [];
+                                trainings = restoredData.trainings || {};
+                                saveData(); // Salva i dati ripristinati nel localStorage
+                                renderAll(); // Aggiorna la UI
+                                showToast('Dati ripristinati con successo!');
+                            }
+                        );
+                    } else {
+                        throw new Error('File di backup non valido.');
+                    }
+                } catch (error) {
+                    showToast('Errore nel leggere il file di backup.');
+                    console.error(error);
+                } finally {
+                    // Resetta l'input per permettere di ricaricare lo stesso file
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Listeners
+        document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 switchPage(e.target.dataset.page);
@@ -751,14 +855,15 @@
             mobileMenu.classList.toggle('hidden');
         });
 
-        // Listeners per i form
         document.getElementById('player-form').addEventListener('submit', handlePlayerForm);
         document.getElementById('badge-form').addEventListener('submit', handleBadgeForm);
         document.getElementById('assign-badge-form').addEventListener('submit', handleAssignBadgeForm);
         document.getElementById('event-form').addEventListener('submit', handleEventForm);
         
-        // Listener per il pulsante Salva
-        document.getElementById('save-data-button').addEventListener('click', saveDataToFirebase);
+        document.getElementById('save-data-button').addEventListener('click', saveData);
+        document.getElementById('backup-data-button').addEventListener('click', handleBackup);
+        document.getElementById('restore-data-input').addEventListener('change', handleRestore);
+
         
         document.getElementById('training-date').addEventListener('change', (e) => {
             selectedTrainingDate = e.target.value;
@@ -767,19 +872,32 @@
         
         document.getElementById('training-log-container').addEventListener('change', handleTrainingDataChange);
         document.getElementById('training-notes').addEventListener('input', debounce(handleTrainingNotesChange, 500));
+        
+        document.getElementById('playerPhoto').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('playerPhotoPreview').src = e.target.result;
+                    document.getElementById('playerPhotoData').value = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
         window.resetForm = (formId) => {
             const form = document.getElementById(formId);
             form.reset();
             if (formId === 'player-form') {
                  document.getElementById('playerId').value = '';
+                 document.getElementById('playerPhotoData').value = '';
+                 document.getElementById('playerPhotoPreview').src = 'https://placehold.co/100x100/16213e/dcdcdc?text=Foto';
             }
         }
         
-        // Funzioni per Modali e Notifiche (invariate)
-        function showToast(message, isError = false) {
+        // Funzioni per Modali e Notifiche
+        function showToast(message) {
             const toast = document.getElementById('toast-notification');
-            toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 z-50 ${isError ? 'bg-red-500' : 'bg-green-500'}`;
             const toastMessage = document.getElementById('toast-message');
             toastMessage.textContent = message;
 
@@ -804,7 +922,6 @@
             confirmCallback = callback;
             confirmModal.classList.remove('hidden');
             setTimeout(() => confirmModalContent.classList.add('scale-100', 'opacity-100'), 10);
-
         }
 
         document.getElementById('confirm-modal-cancel').addEventListener('click', () => {
@@ -822,6 +939,7 @@
             confirmCallback = null;
         });
         
+        // Player detail modal
         window.showPlayerDetail = (id) => {
             const player = players.find(p => p.id === id);
             if(!player) return;
